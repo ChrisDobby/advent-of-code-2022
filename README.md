@@ -2,9 +2,9 @@
 
 My attempts at the [2022 Advent of Code](https://adventofcode.com/2022)
 
-Written is [Typescript](https://www.typescriptlang.org/) running on [Deno](https://deno.land/)
+Written in [Typescript](https://www.typescriptlang.org/) running on [Deno](https://deno.land/)
 
-To run a day cd into the directory and use
+To run a day, cd into the directory and execute
 
 ```
 deno run --allow-read main.ts
