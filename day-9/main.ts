@@ -23,24 +23,22 @@ const getTouchingCoords = ({ x, y }: Coords): Coords[] => [
 ]
 
 const moveTowards = (fromCoords: Coords, toCoords: Coords): Coords => {
-  let newX = fromCoords.x
-  let newY = fromCoords.y
+  let { x, y } = fromCoords
 
-  const xDiff = toCoords.x - fromCoords.x
-  const yDiff = toCoords.y - fromCoords.y
+  const diff = { x: toCoords.x - x, y: toCoords.y - y }
 
-  if (xDiff > 0) newX++
-  if (xDiff < 0) newX--
-  if (yDiff > 0) newY++
-  if (yDiff < 0) newY--
+  if (diff.x > 0) x++
+  if (diff.x < 0) x--
+  if (diff.y > 0) y++
+  if (diff.y < 0) y--
 
-  return { x: newX, y: newY }
+  return { x, y }
 }
 
 const isTouching = ({ x, y }: Coords, previousKnotCoords: Coords): boolean => getTouchingCoords(previousKnotCoords).some(coords => coords.x === x && coords.y === y)
 const moveKnot = (knotCoords: Coords, previousKnotCoords: Coords) => (isTouching(knotCoords, previousKnotCoords) ? knotCoords : moveTowards(knotCoords, previousKnotCoords))
-const moveRope = (knotCoords: Coords[], direction: Direction) =>
-  knotCoords.reduce((coords, knot, index) => [...coords, index === 0 ? move[direction](knot) : moveKnot(knot, coords[index - 1])], [] as Coords[])
+const moveRope = (rope: Coords[], direction: Direction) =>
+  rope.reduce((coords, knot, index) => [...coords, index === 0 ? move[direction](knot) : moveKnot(knot, coords[index - 1])], [] as Coords[])
 
 const moves = Deno.readTextFileSync('./input.txt')
   .split('\n')
@@ -50,11 +48,11 @@ const moves = Deno.readTextFileSync('./input.txt')
 
 const { tailHistory } = moves.reduce(
   (state, direction) => {
-    const knots = moveRope(state.knots, direction)
-    return { knots, tailHistory: [...state.tailHistory, knots[knots.length - 1]] }
+    const rope = moveRope(state.rope, direction)
+    return { rope, tailHistory: [...state.tailHistory, rope[rope.length - 1]] }
   },
   {
-    knots: Array.from(new Array(NUMBER_OF_KNOTS)).map(() => ({ x: 0, y: 0 })),
+    rope: Array.from(new Array(NUMBER_OF_KNOTS)).map(() => ({ x: 0, y: 0 })),
     tailHistory: [{ x: 0, y: 0 }],
   }
 )
