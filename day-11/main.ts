@@ -16,7 +16,7 @@ type Throw = {
 }
 
 const monkeyProperties: Record<MonkeyProperty, (monkey: Monkey, value: string) => Monkey> = {
-  'Starting items': (monkey: Monkey, value: string) => ({ ...monkey, items: value.split(',').map(i => Number(i)) }),
+  'Starting items': (monkey: Monkey, value: string) => ({ ...monkey, items: value.split(',').map(Number) }),
   Operation: (monkey: Monkey, value: string) => ({ ...monkey, operation: value.split('=').slice(-1)[0] }),
   Test: (monkey: Monkey, value: string) => ({ ...monkey, testDivisibleBy: Number(value.split(' ').slice(-1)[0]) }),
   'If true': (monkey: Monkey, value: string) => ({ ...monkey, trueMonkey: Number(value.split(' ').slice(-1)[0]) }),
@@ -33,7 +33,7 @@ const getWorryLevel = (operation: string, item: number): number => Number(eval(o
 const getThrow = (worryLevel: number, monkey: Monkey): Omit<Throw, 'fromMonkeyIndex'> =>
   worryLevel % monkey.testDivisibleBy === 0 ? { toMonkeyIndex: monkey.trueMonkey, item: worryLevel } : { toMonkeyIndex: monkey.falseMonkey, item: worryLevel }
 
-const inspect = (monkey: Monkey, worryLevel: number /* item: number*/): Omit<Throw, 'fromMonkeyIndex'> => getThrow(worryLevel, monkey)
+const inspect = (monkey: Monkey, worryLevel: number): Omit<Throw, 'fromMonkeyIndex'> => getThrow(worryLevel, monkey)
 
 const makeThrow = (monkeys: Monkey[], originalItem: number, { fromMonkeyIndex, toMonkeyIndex, item }: Throw): Monkey[] => {
   monkeys[fromMonkeyIndex].items = monkeys[fromMonkeyIndex].items.filter(item => item !== originalItem)
@@ -69,5 +69,13 @@ const monkeysAfter20Rounds = Array.from(new Array(monkeys.length * 20))
   .map((_, index) => index % monkeys.length)
   .reduce((acc, monkeyIndex) => turn(value => Math.floor(value / 3))(acc, monkeyIndex), JSON.parse(JSON.stringify(monkeys)) as Monkey[])
 
+const factor = monkeys.map(({ testDivisibleBy }) => testDivisibleBy).reduce((acc, factor) => acc * factor, 1)
+const monkeysAfter10000Rounds = Array.from(new Array(monkeys.length * 10000))
+  .map((_, index) => index % monkeys.length)
+  .reduce((acc, monkeyIndex) => turn(value => value % factor)(acc, monkeyIndex), JSON.parse(JSON.stringify(monkeys)) as Monkey[])
+
 const monkeyBusinessAfter20Rounds = getMonkeyBusiness(monkeysAfter20Rounds.map(monkey => monkey.inspected || 0))
+const monkeyBusinessAfter10000Rounds = getMonkeyBusiness(monkeysAfter10000Rounds.map(monkey => monkey.inspected || 0))
+
 console.log(monkeyBusinessAfter20Rounds)
+console.log(monkeyBusinessAfter10000Rounds)
