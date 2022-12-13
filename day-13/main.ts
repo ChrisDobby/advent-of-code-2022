@@ -20,7 +20,6 @@ const comparePair = ([entry1, entry2]: Pair): Comparison => {
     case !entry2:
       return 'incorrect'
     default:
-      console.log('in default', entry1, entry2)
       return 'equal'
   }
 }
@@ -45,19 +44,17 @@ const comparedPairs = (
 
 const sumOfCorrectIndices = comparedPairs.filter(({ result }) => result === 'correct').reduce((acc, { index }) => acc + index, 0)
 
-const [divider1, divider2] = [...packets, [2], [6]]
-  .sort((packet1, packet2) => {
-    switch (comparePair([packet1, packet2])) {
-      case 'equal':
-        return 0
-      case 'correct':
-        return -1
-      case 'incorrect':
-        return 1
-    }
-  })
+const sortComparison: Record<Comparison, number> = {
+  equal: 0,
+  correct: -1,
+  incorrect: 1,
+}
+
+const dividers = [[2], [6]]
+const [divider1, divider2] = [...packets, ...dividers]
+  .sort((packet1, packet2) => sortComparison[comparePair([packet1, packet2])])
   .map((packet, index) => ({ index: index + 1, packet }))
-  .filter(({ packet }) => JSON.stringify(packet) === JSON.stringify([2]) || JSON.stringify(packet) === JSON.stringify([6]))
+  .filter(({ packet }) => dividers.some(divider => JSON.stringify(packet) === JSON.stringify(divider)))
 
 const decoderKey = divider1.index * divider2.index
 
