@@ -14,6 +14,16 @@ const getPositionsWithNoBeacon = (positions: Position[], y: number) => {
   )
 }
 
+const getEdge = ({ sensor, distance }: Position) => Array.from(new Array(distance + 2)).flatMap((_, i) => [{ x: sensor.x + i, y: sensor.y - distance + i - 1 }])
+
+const getDistressBeaconFrequency = (positions: Position[], max: number) => {
+  const beaconCoords = positions
+    .flatMap(getEdge)
+    .filter(({ x, y }) => x >= 0 && x < max && y >= 0 && y < max)
+    .filter(coord => positions.every(position => calculateDistance(coord, position.sensor) > position.distance))[0]
+  return beaconCoords.x * 4000000 + beaconCoords.y
+}
+
 const positions = Deno.readTextFileSync('./input.txt')
   .split('\n')
   .filter(Boolean)
@@ -31,3 +41,6 @@ const positions = Deno.readTextFileSync('./input.txt')
 
 const positionsWithNoBeacon = getPositionsWithNoBeacon(positions, 2000000)
 console.log(positionsWithNoBeacon.length)
+
+const distressBeaconFrequency = getDistressBeaconFrequency(positions, 4000000)
+console.log(distressBeaconFrequency)
