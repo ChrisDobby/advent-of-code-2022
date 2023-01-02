@@ -115,7 +115,7 @@ const getHeightOfTower = (numberOfRocks: number, jets: Gas) => {
   return highestY
 }
 
-const gasJets = Deno.readTextFileSync('./input-test.txt')
+const gasJets = Deno.readTextFileSync('./input.txt')
   .split('')
   .map(dir => (dir === '<' ? -1 : dir === '>' ? 1 : null))
   .filter(Boolean) as Gas
