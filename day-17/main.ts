@@ -95,22 +95,46 @@ const rockFall =
     }
   }
 
+const getCacheKey = (rockIndex: number, jetIndex: number, rockPositions: Pos[], top: number) =>
+  `${rockIndex}-${jetIndex}-${Array.from({ length: 4 })
+    .flatMap((_, y) => Array.from({ length: 7 }).flatMap((_, x) => (rockPositions.find(pos => pos.x === x && pos.y === y + top - 4) ? '1' : '0')))
+    .join('')}`
+
 const getHeightOfTower = (numberOfRocks: number, jets: Gas) => {
   let highestY = 0
-  let nextJetImdex = 0
-  const allRocks: Pos[] = []
-
+  let yOffset = 0
+  let nextJetIndex = 0
+  let allRocks: Pos[] = []
+  const seen: Record<string, { rockCount: number; height: number }> = {}
   const rockFallWithJet = rockFall(jetIndex => jets[jetIndex % jets.length])
-  Array.from({ length: numberOfRocks }).forEach((_, index) => {
-    const rock = createRock(index, { x: 2, y: highestY + 4 })
-    const { settledRock, lastJetIndex } = rockFallWithJet(rock, nextJetImdex, allRocks)
+  let rockCount = 0
+  while (rockCount < numberOfRocks) {
+    const rock = createRock(rockCount, { x: 2, y: highestY + 4 })
+    const { settledRock, lastJetIndex } = rockFallWithJet(rock, nextJetIndex, allRocks)
     allRocks.push(...settledRock)
-    nextJetImdex = lastJetIndex + 1
+    nextJetIndex = lastJetIndex + 1
     const topOfRock = Math.max(...settledRock.map(pos => pos.y))
     if (topOfRock > highestY) {
       highestY = topOfRock
     }
-  })
+
+    const cacheKey = getCacheKey(rockCount % 5, nextJetIndex % jets.length, allRocks, highestY)
+    if (seen[cacheKey]) {
+      const { rockCount: seenRockCount, height: seenHeight } = seen[cacheKey]
+      const diff = highestY - seenHeight
+      const remainingRocks = numberOfRocks - rockCount
+      const cycles = Math.floor(remainingRocks / (rockCount - seenRockCount))
+      const newHighestY = highestY + diff * cycles
+      rockCount += (rockCount - seenRockCount) * cycles
+      yOffset = newHighestY - highestY
+      highestY = newHighestY
+      allRocks = allRocks.map(pos => ({ ...pos, y: pos.y + yOffset }))
+    } else {
+      seen[cacheKey] = { rockCount, height: highestY }
+    }
+
+    rockCount++
+  }
 
   return highestY
 }
@@ -121,4 +145,7 @@ const gasJets = Deno.readTextFileSync('./input.txt')
   .filter(Boolean) as Gas
 
 const heightOf2022 = getHeightOfTower(2022, gasJets)
+const heightOf1000000000000 = getHeightOfTower(1000000000000, gasJets)
+
 console.log(heightOf2022)
+console.log(heightOf1000000000000)
